@@ -1,0 +1,49 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Check and Update
+
+# Controls when the action will run. 
+on:
+  schedule:
+    - cron:  '0 10 * * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "check_and_update"
+  check_and_update:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Fetch newest tag
+        run:  curl -silent https://api.github.com/repos/syncthing/syncthing/tags | sed -n "s/\s*\"name\":\s\"\(v[0-9]\.[0-9]*\.[0-9]*\)\",/\1/p" | head -1 > VERSION
+        
+      - name: Set environment variable
+        run: export VERSION=$(cat VERSION)
+
+      - name: Check for modified files
+        id: git-check
+        run: echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
+
+      - name: Commit latest release version
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git commit -am "New release version: $(cat VERSION)"
+          git push
+
+      - name: Repository Dispatch
+        if: steps.git-check.outputs.modified == 'true'
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          repository: maroessler/docker-syncthing
+          event-type: trigger_build
