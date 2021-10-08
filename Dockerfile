@@ -10,8 +10,9 @@ RUN apk add --no-cache ca-certificates su-exec tzdata
 
 COPY ./syncthing /bin/syncthing
 COPY ./entrypoint.sh /bin/entrypoint.sh
+RUN chmod 700 /bin/entrypoint.sh
 
-ENV PUID=1000 PGID=1000 HOME=/var/syncthing
+ENV PUID=1000 PGID=1000 HOME=/
 
 HEALTHCHECK --interval=1m --timeout=10s \
   CMD nc -z 127.0.0.1 8384 || exit 1

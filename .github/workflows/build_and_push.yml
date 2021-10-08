@@ -46,12 +46,13 @@ jobs:
         # uses: docker/build-push-action@e1b7f96249f2e4c8e4ac1519b9608c0d48944a1f
         uses: docker/build-push-action@v2.4.0
         with:
+          context: .
           # List of build-time variables
-          build-args: ANSIBLE_RELEASE=${{ steps.getversion.outputs.version }}
+          build-args: SYNCTHING_RELEASE=${{ steps.getversion.outputs.version }}
           # List of target platforms for build
           platforms: linux/arm/v7,linux/arm/v6
           # Push is a shorthand for --output=type=registry
           push: true
           # List of tags
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-ansible:${{ steps.getversion.outputs.version }},${{ secrets.DOCKERHUB_USERNAME }}/docker-ansible:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-syncthing:${{ steps.getversion.outputs.version }},${{ secrets.DOCKERHUB_USERNAME }}/docker-syncthing:latest
           
